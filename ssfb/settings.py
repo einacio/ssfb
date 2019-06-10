@@ -102,3 +102,4 @@ STATIC_URL = '/static/'
 
 FB_APP_ID = os.getenv('FB_APP_ID')
 FB_APP_SECRET = os.getenv('FB_APP_SECRET')
+BASE_URL = os.getenv('BASE_URL')

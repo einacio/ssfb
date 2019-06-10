@@ -1,1 +1,6 @@
-login
+Hello {{ user.name }} <img src="{{ avatar }}" alt="{{ user.name }} profile picture">
+
+<ul>
+<li><a href="{% url 'logout' %}">Close session</a></li>
+<li><a href="{% url 'deauth' %}">Remove app</a></li>
+</ul>
