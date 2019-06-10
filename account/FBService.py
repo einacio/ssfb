@@ -1,8 +1,11 @@
+import hashlib
+import hmac
 import json
 
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import urlsafe_base64_decode
 
 from .models import User, UserHistory
 from urllib import request
@@ -30,10 +33,8 @@ class FBService:
                     user = User(fb_user_id=user_data['id'])
                 user.fb_token = token
                 user.name = user_data['name']
-                user.is_active = True
                 user.save()
-                history = UserHistory(user=user, action=True, datetime=timezone.now())
-                history.save()
+                user.activate()
                 return user
         return False
 
@@ -68,3 +69,15 @@ class FBService:
         with request.urlopen(req) as a:
             resp = json.loads(a.read().decode('UTF-8'))
         return resp
+
+    @staticmethod
+    def manage_deauth(post_data):
+        if 'signed_request' in post_data:
+            parts = post_data['signed_request'].split('.')
+            signature = urlsafe_base64_decode(parts[0])
+
+            expected_signature = hmac.new(bytes(settings.FB_APP_SECRET, 'UTF-8'), msg=bytes(parts[1], 'UTF-8'), digestmod=hashlib.sha256).digest()
+            if hmac.compare_digest(expected_signature, signature):
+                data = json.loads(urlsafe_base64_decode(parts[1]).decode('UTF-8'))
+                return data['user_id']
+        return False
